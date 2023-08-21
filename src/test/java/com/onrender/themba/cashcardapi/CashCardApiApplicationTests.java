@@ -86,7 +86,7 @@ class CashCardApiApplicationTests {
 		assertThat(read.size()).isEqualTo(1);
 
 		double amount = documentContext.read("$[0].amount");
-		assertThat(amount).isEqualTo(150.00);
+		assertThat(amount).isEqualTo(200);
 	}
 
 	@Test
@@ -96,9 +96,9 @@ class CashCardApiApplicationTests {
 
 		DocumentContext documentContext = JsonPath.parse(response.getBody());
 		JSONArray page = documentContext.read("$[*]");
-		assertThat(page.size()).isEqualTo(3);
+		assertThat(page.size()).isEqualTo(4);
 
 		JSONArray amounts = documentContext.read("$..amount");
-		assertThat(amounts).containsExactly(1.00, 123.45, 150.00);
+		assertThat(amounts).containsExactly(2.00, 123.45, 150.00, 200.00);
 	}
 }
