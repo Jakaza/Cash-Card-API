@@ -1,0 +1,8 @@
+Security Requirements
+
+The logic will be something like this:
+    IF the user is authenticated
+    ... AND they are authorized as a "card owner"
+    ... ... AND they own the requested Cash Card
+    THEN complete the users's request
+    BUT do not allow users to access Cash Cards they do not own.
