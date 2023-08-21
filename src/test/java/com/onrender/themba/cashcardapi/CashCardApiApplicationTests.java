@@ -9,7 +9,9 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.jdbc.Sql;
-import org.springframework.web.client.RestTemplate;
+
+import java.net.URI;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -43,7 +45,23 @@ class CashCardApiApplicationTests {
 		assertThat(responseEntity.getBody()).isBlank();
 	}
 
-
-
+	@Test
+	void shouldReturnCashCardLocationInHeaderWhenCreated(){
+		CashCard newCashCard = new CashCard(null, 1.00);
+		ResponseEntity<Void> newResponseEntity = testRestTemplate.postForEntity(
+				"/cashcards",
+				newCashCard,
+				Void.class
+		);
+		assertThat(newResponseEntity.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+		URI location = newResponseEntity.getHeaders().getLocation();
+		ResponseEntity<String> responseEntity = testRestTemplate.getForEntity(location, String.class);
+		assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+		DocumentContext documentContext = JsonPath.parse(responseEntity.getBody());
+		Number id = documentContext.read("$.id");
+		double amount = documentContext.read("$.amount");
+		assertThat(amount).isEqualTo(1.00);
+		assertThat(id).isNotNull();
+	}
 
 }
