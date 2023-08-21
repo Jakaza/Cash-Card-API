@@ -8,10 +8,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.web.client.RestTemplate;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Sql({"/sql/schema.sql", "/sql/data.sql"})
 class CashCardApiApplicationTests {
 
 	@Autowired
@@ -31,12 +33,17 @@ class CashCardApiApplicationTests {
 		double amount = documentContext.read("$.amount");
 
 		assertThat(id).isEqualTo(99);
-		assertThat(amount).isEqualTo(125.0);
+		assertThat(amount).isEqualTo(123.45);
 	}
 
 	@Test
 	void shouldNotReturnACashCardWithAnUnknownId(){
 		ResponseEntity<String> responseEntity = testRestTemplate.getForEntity("/cashcards/000", String.class);
 		assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+		assertThat(responseEntity.getBody()).isBlank();
 	}
+
+
+
+
 }
