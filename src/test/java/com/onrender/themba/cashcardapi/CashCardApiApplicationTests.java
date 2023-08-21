@@ -1,13 +1,42 @@
 package com.onrender.themba.cashcardapi;
 
+import com.jayway.jsonpath.DocumentContext;
+import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestTemplate;
+import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class CashCardApiApplicationTests {
+
+	@Autowired
+	TestRestTemplate testRestTemplate;
 
 	@Test
 	void contextLoads() {
 	}
 
+	@Test
+	void shouldReturnACashCardWhenDataIsSaved(){
+		ResponseEntity<String> responseEntity = testRestTemplate.getForEntity("/cashcards/99", String.class);
+		assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+		DocumentContext documentContext = JsonPath.parse(responseEntity.getBody());
+
+		Number id = documentContext.read("$.id");
+		double amount = documentContext.read("$.amount");
+
+		assertThat(id).isEqualTo(99);
+		assertThat(amount).isEqualTo(125.0);
+	}
+
+	@Test
+	void shouldNotReturnACashCardWithAnUnknownId(){
+		ResponseEntity<String> responseEntity = testRestTemplate.getForEntity("/cashcards/000", String.class);
+		assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+	}
 }

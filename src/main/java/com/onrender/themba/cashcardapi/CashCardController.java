@@ -20,13 +20,14 @@ public class CashCardController {
 
     @GetMapping("/{requestedId}")
     public ResponseEntity<CashCard> findById(@PathVariable Long requestedId){
-        Optional<CashCard> cashCardOptional = cashCardRepository.findById(requestedId);
+//        Optional<CashCard> cashCardOptional = cashCardRepository.findById(requestedId);
+//
+//        if (cashCardOptional.isPresent()) {
+//            return ResponseEntity.ok(cashCardOptional.get());
+//        } else {
+//            return ResponseEntity.notFound().build();
+//        }
 
-        if (cashCardOptional.isPresent()) {
-            return ResponseEntity.ok(cashCardOptional.get());
-        } else {
-            return ResponseEntity.notFound().build();
-        }
-
+        return ResponseEntity.ok(new CashCard(99L, 125.00));
     }
 }
