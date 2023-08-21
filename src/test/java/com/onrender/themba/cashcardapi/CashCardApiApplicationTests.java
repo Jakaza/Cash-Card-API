@@ -46,7 +46,7 @@ class CashCardApiApplicationTests {
 	}
 
 	@Test
-	void shouldReturnCashCardLocationInHeaderWhenCreated(){
+	void shouldCreateANewCashCard(){
 		CashCard newCashCard = new CashCard(null, 1.00);
 		ResponseEntity<Void> newResponseEntity = testRestTemplate.postForEntity(
 				"/cashcards",
