@@ -2,6 +2,7 @@ package com.onrender.themba.cashcardapi;
 
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
+import net.minidev.json.JSONArray;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -17,14 +18,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Sql({"/sql/schema.sql", "/sql/data.sql"})
 class CashCardApiApplicationTests {
-
 	@Autowired
 	TestRestTemplate testRestTemplate;
-
 	@Test
 	void contextLoads() {
 	}
-
 	@Test
 	void shouldReturnACashCardWhenDataIsSaved(){
 		ResponseEntity<String> responseEntity = testRestTemplate.getForEntity("/cashcards/99", String.class);
@@ -37,14 +35,12 @@ class CashCardApiApplicationTests {
 		assertThat(id).isEqualTo(99);
 		assertThat(amount).isEqualTo(123.45);
 	}
-
 	@Test
 	void shouldNotReturnACashCardWithAnUnknownId(){
 		ResponseEntity<String> responseEntity = testRestTemplate.getForEntity("/cashcards/000", String.class);
 		assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
 		assertThat(responseEntity.getBody()).isBlank();
 	}
-
 	@Test
 	void shouldCreateANewCashCard(){
 		CashCard newCashCard = new CashCard(null, 1.00);
@@ -63,5 +59,16 @@ class CashCardApiApplicationTests {
 		assertThat(amount).isEqualTo(1.00);
 		assertThat(id).isNotNull();
 	}
-
+	@Test
+	void shouldReturnListOfCashCardSaved(){
+		ResponseEntity<String> responseEntity = testRestTemplate.getForEntity("/cashcards?page=0&size=3", String.class);
+		assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+		DocumentContext documentContext = JsonPath.parse(responseEntity.getBody());
+		JSONArray data = documentContext.read("[*]");
+		double min = documentContext.read("$.[0].amount");
+		double max = documentContext.read("$.[2].amount");
+		assertThat(data.size()).isEqualTo(3);
+		assertThat(min).isEqualTo(2.00);
+		assertThat(max).isEqualTo(150);
+	}
 }
