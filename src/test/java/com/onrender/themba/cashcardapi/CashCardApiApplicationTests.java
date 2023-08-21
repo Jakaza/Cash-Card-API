@@ -9,6 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.jdbc.Sql;
 
 import java.net.URI;
@@ -16,6 +17,7 @@ import java.net.URI;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @Sql({"/sql/schema.sql", "/sql/data.sql"})
 class CashCardApiApplicationTests {
 	@Autowired
@@ -61,12 +63,15 @@ class CashCardApiApplicationTests {
 	}
 	@Test
 	void shouldReturnListOfCashCardSaved(){
-		ResponseEntity<String> responseEntity = testRestTemplate.getForEntity("/cashcards?page=0&size=3", String.class);
-		assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+		ResponseEntity<String> responseEntity = testRestTemplate.getForEntity("/cashcards?page=0&size=3&sort=amount,asc", String.class);
 		DocumentContext documentContext = JsonPath.parse(responseEntity.getBody());
 		JSONArray data = documentContext.read("[*]");
+		JSONArray ids = documentContext.read("$..id");
 		double min = documentContext.read("$.[0].amount");
 		double max = documentContext.read("$.[2].amount");
+
+		assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(ids).containsExactlyInAnyOrder(102,100,99);
 		assertThat(data.size()).isEqualTo(3);
 		assertThat(min).isEqualTo(2.00);
 		assertThat(max).isEqualTo(150);
