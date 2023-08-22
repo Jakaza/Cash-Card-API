@@ -27,7 +27,9 @@ class CashCardApiApplicationTests {
 	}
 	@Test
 	void shouldReturnACashCardWhenDataIsSaved(){
-		ResponseEntity<String> responseEntity = testRestTemplate.getForEntity("/cashcards/99", String.class);
+		ResponseEntity<String> responseEntity = testRestTemplate
+				.withBasicAuth("Jakaza", "jka123")
+				.getForEntity("/cashcards/99", String.class);
 		assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
 		DocumentContext documentContext = JsonPath.parse(responseEntity.getBody());
 
@@ -39,31 +41,39 @@ class CashCardApiApplicationTests {
 	}
 	@Test
 	void shouldNotReturnACashCardWithAnUnknownId(){
-		ResponseEntity<String> responseEntity = testRestTemplate.getForEntity("/cashcards/000", String.class);
+		ResponseEntity<String> responseEntity = testRestTemplate
+				.withBasicAuth("Jakaza", "jka123")
+				.getForEntity("/cashcards/000", String.class);
 		assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
 		assertThat(responseEntity.getBody()).isBlank();
 	}
 	@Test
-	void shouldCreateANewCashCard(){
-		CashCard newCashCard = new CashCard(null, 1.00);
-		ResponseEntity<Void> newResponseEntity = testRestTemplate.postForEntity(
-				"/cashcards",
-				newCashCard,
-				Void.class
-		);
-		assertThat(newResponseEntity.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-		URI location = newResponseEntity.getHeaders().getLocation();
-		ResponseEntity<String> responseEntity = testRestTemplate.getForEntity(location, String.class);
-		assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
-		DocumentContext documentContext = JsonPath.parse(responseEntity.getBody());
+	@DirtiesContext
+	void shouldCreateANewCashCard() {
+		CashCard newCashCard = new CashCard(null, 250.00, "Jakaza");
+		ResponseEntity<Void> createResponse = testRestTemplate
+				.withBasicAuth("Jakaza", "jka123")
+				.postForEntity("/cashcards", newCashCard, Void.class);
+		assertThat(createResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+
+		URI locationOfNewCashCard = createResponse.getHeaders().getLocation();
+		ResponseEntity<String> getResponse = testRestTemplate
+				.withBasicAuth("Jakaza", "jka123")
+				.getForEntity(locationOfNewCashCard, String.class);
+		assertThat(getResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+		DocumentContext documentContext = JsonPath.parse(getResponse.getBody());
 		Number id = documentContext.read("$.id");
-		double amount = documentContext.read("$.amount");
-		assertThat(amount).isEqualTo(1.00);
+		Double amount = documentContext.read("$.amount");
+
 		assertThat(id).isNotNull();
+		assertThat(amount).isEqualTo(250.00);
 	}
 	@Test
 	void shouldReturnListOfCashCardSaved(){
-		ResponseEntity<String> responseEntity = testRestTemplate.getForEntity("/cashcards?page=0&size=3&sort=amount,asc", String.class);
+		ResponseEntity<String> responseEntity = testRestTemplate
+				.withBasicAuth("Jakaza", "jka123")
+				.getForEntity("/cashcards?page=0&size=3&sort=amount,asc", String.class);
 		DocumentContext documentContext = JsonPath.parse(responseEntity.getBody());
 		JSONArray data = documentContext.read("[*]");
 		JSONArray ids = documentContext.read("$..id");
@@ -78,7 +88,9 @@ class CashCardApiApplicationTests {
 	}
 	@Test
 	void shouldReturnASortedPageOfCashCards() {
-		ResponseEntity<String> response = testRestTemplate.getForEntity("/cashcards?page=0&size=1&sort=amount,desc", String.class);
+		ResponseEntity<String> response = testRestTemplate
+				.withBasicAuth("Jakaza", "jka123")
+				.getForEntity("/cashcards?page=0&size=1&sort=amount,desc", String.class);
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 
 		DocumentContext documentContext = JsonPath.parse(response.getBody());
@@ -91,7 +103,9 @@ class CashCardApiApplicationTests {
 
 	@Test
 	void shouldReturnASortedPageOfCashCardsWithNoParametersAndUseDefaultValues() {
-		ResponseEntity<String> response = testRestTemplate.getForEntity("/cashcards", String.class);
+		ResponseEntity<String> response = testRestTemplate
+				.withBasicAuth("Jakaza", "jka123")
+				.getForEntity("/cashcards", String.class);
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 
 		DocumentContext documentContext = JsonPath.parse(response.getBody());
